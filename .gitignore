@@ -2,5 +2,5 @@
 /Simulator/Library/
 /Simulator/Temp/
 /__pycache__/
-/.DS_STORE
+.DS_STORE
 .vscode/*
