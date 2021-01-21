@@ -1,12 +1,9 @@
-import _thread
 import json
 import math
 import os
 import socket
 import sys
 import time
-
-from reprint import output
 
 from calculator import Vector3
 from network import Network
