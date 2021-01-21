@@ -3,4 +3,4 @@
 /Simulator/Temp/
 /__pycache__/
 /.DS_STORE
-/.vscode/
+.vscode/*
