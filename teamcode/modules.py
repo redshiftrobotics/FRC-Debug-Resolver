@@ -32,7 +32,3 @@ class Motor:
     def setPower(self, power: float):
         """Sets the motor's power"""
         self.network.output_vars.movement[self.index] = power
-
-
-    
-    

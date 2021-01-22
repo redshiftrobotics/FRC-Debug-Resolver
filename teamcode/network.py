@@ -1,5 +1,4 @@
 import json
-import math
 import socket
 import sys
 import threading
@@ -16,9 +15,9 @@ class InputNetworkVars:
         self.encoder_count = encoder_count
 
     @classmethod
-    def fromBytes(cls, bytes):
+    def from_bytes(cls, data):
         """Builds class from bytes"""
-        msg = json.loads(bytes)
+        msg = json.loads(data)
 
         world_position = Vector2.fromDict(msg['outputWorldPosition'])
         world_rotation = float(msg['outputWorldRotation'])
@@ -33,7 +32,7 @@ class OutputNetworkVars:
         self.movement = movement
         self.rotation = rotation
 
-    def asBytes(self):
+    def as_bytes(self):
         """Builds bytes from class"""
         # Create object to send
         data = {
@@ -47,6 +46,7 @@ class OutputNetworkVars:
 
 # Network object
 class Network:
+    """Performs networking with Unity"""
     def __init__(self, port):
         # Socket for networking
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -98,25 +98,27 @@ class Network:
             if (not self.connected):
                 return
             # Chatter with server
-            self.push(self.output_vars)
+            self.push()
             self.pull()
 
 
-    def push(self, message: OutputNetworkVars):
+    def push(self):
         """Push vars to server"""
         try:
             # Send the data to the server
-            self.sock.send(message.asBytes())
+            self.sock.send(self.output_vars.as_bytes())
         except:
             print(sys.exc_info()[0])
             pass
+
 
 
     def pull(self):
         """Receive vars from server"""
         try:
             # Read 1024 bytes
-            message = InputNetworkVars.fromBytes(self.sock.recv(1024))
+            message = InputNetworkVars.from_bytes(self.sock.recv(1024))
+
             self.input_vars = message
             self.message_count += 1
         except:

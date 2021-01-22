@@ -1,13 +1,15 @@
-import json
-import math
 import os
-import socket
 import sys
-import time
 
-from calculator import Vector3
+import pygame
+
+from inputs import INPUTS
 from network import Network
 from robot import Robot
+
+# Initialize pygame
+pygame.init()
+pygame.display.set_mode((100, 100))
 
 # Create a network object
 network = Network(port=8052)
@@ -22,6 +24,7 @@ network.wait_for_messages()
 try:
     while(True):
         robot.loop()
+        INPUTS.update()
 
 # Hook and disconnect before exiting
 except KeyboardInterrupt:

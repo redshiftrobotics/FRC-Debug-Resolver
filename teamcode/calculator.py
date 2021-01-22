@@ -12,7 +12,6 @@ class Vector3:
         """Returns the magnitude of the vector"""
         return math.sqrt(self.x**2 + self.y**2 + self.z**2)
 
-
     def normalize(self):
         """Normalizes vector over magnitude"""
         mag = self.magnitude()
@@ -25,20 +24,20 @@ class Vector3:
 
     def asDict(self):
         """Returns the vector as a dictionary"""
-        dict = {
+        data = {
             "x": self.x,
             "y": self.y,
             "z": self.z
         }
-        return dict
+        return data
 
     @classmethod
-    def fromDict(cls, dict):
+    def fromDict(cls, data):
         """Creates a vector from a dictionary"""
 
-        x = dict['x']
-        y = dict['y']
-        z = dict['z']
+        x = data['x']
+        y = data['y']
+        z = data['z']
 
         return Vector3(x, y, z)
 
@@ -51,7 +50,7 @@ class Vector3:
         elif (index is 1):
             self.y = data
         elif (index is 2):
-            self.z= data
+            self.z = data
 
     def __add__(self, other):
         x = self.x + other.x
@@ -93,32 +92,31 @@ class Vector2:
         y = self.y / (abs(self.x) + abs(self.y))
 
         return Vector2(x, y)
-    
+
     def asList(self):
         """Returns the vector as a list"""
-        self.list = [
+        data = [
             self.x,
             self.y,
         ]
-        
-        return self.list
+        return data
 
     @classmethod
-    def fromDict(cls, dict):
+    def fromDict(cls, data):
         """Creates a vector from a dictionary"""
-        x = dict['x']
-        y = dict['y']
+        x = data['x']
+        y = data['y']
 
         return Vector2(x, y)
 
     def asDict(self):
         """Returns the vector as a dictionary"""
-        dict = {
+        data = {
             "x": self.x,
             "y": self.y,
         }
-        
-        return dict
+
+        return data
 
     def __getitem__(self, index):
         return [self.x, self.y][index]
@@ -160,10 +158,21 @@ class Calculator:
             angle += 2 * math.pi
         while (angle > math.pi):
             angle -= 2 * math.pi
-        
+
         return angle
 
     @staticmethod
     def Clip(value, minimum, maximum):
         """Because python doesn't have this..."""
-        return max(maximum,min(minimum,value))
+        return max(maximum, min(minimum, value))
+
+    @staticmethod
+    def lerp(a, b, t):
+        delta = a - b
+
+        if (abs(delta) < 0.01):
+            a = b
+        else:
+            a = a - delta / 100 * t
+
+        return a

@@ -35,8 +35,6 @@ public class Network : MonoBehaviour
     public OutputNetworkVars outputVars;
     public InputNetworkVars inputVars;
 
-
-
     // Reference to the client
     private TcpClient connectedTcpClient;
     // Our listener and thread
@@ -55,6 +53,9 @@ public class Network : MonoBehaviour
         tcpListenerThread = new Thread(new ThreadStart(ListenForRequests));
         tcpListenerThread.IsBackground = true;
         tcpListenerThread.Start();
+
+        // Start coroutine for sending output messages
+        StartCoroutine(SendOutput());
     }
 
     void Update()
@@ -74,7 +75,7 @@ public class Network : MonoBehaviour
         outputVars.outputEncoderCount.x += (int)(robotResolver.GetRPM().x * Time.deltaTime * 60);
         outputVars.outputEncoderCount.y += (int)(robotResolver.GetRPM().y * Time.deltaTime * 60);
 
-        SendMessage(outputVars);
+        //SendMessage(outputVars);
     }
 
     // Runs in another thread and starts listening for requests to the server
@@ -137,6 +138,15 @@ public class Network : MonoBehaviour
         }
     }
 
+    IEnumerator SendOutput()
+    {
+        while (true)
+        {
+            SendMessage(outputVars);
+            yield return new WaitForSeconds(0.01f);
+        }
+    }
+
     private void SendMessage(object message)
     {
 
@@ -167,7 +177,7 @@ public class Network : MonoBehaviour
     private void OnDisconnect()
     {
         Debug.Log("Disconnected");
-        
+
         inputVars.movement = new Vector3(0, 0);
         inputVars.rotation = new Vector3(0, 0);
         robotResolver.reset = true;

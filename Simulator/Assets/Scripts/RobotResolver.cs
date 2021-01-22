@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RobotResolver : MonoBehaviour
-{
+public class RobotResolver : MonoBehaviour {
     private Rigidbody rb;
     private Network network;
 
@@ -22,8 +21,7 @@ public class RobotResolver : MonoBehaviour
     public bool reset = false;
 
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start() {
         rb = GetComponent<Rigidbody>();
         network = GetComponent<Network>();
 
@@ -40,30 +38,29 @@ public class RobotResolver : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
         //Translate(network.inputMovement);
         //Rotate(network.inputRotation);
 
-        SetPower(network.inputVars.movement.x, network.inputVars.movement.y);
+        SetPower(
+            Mathf.Clamp(network.inputVars.movement.x, -1, 1),
+            Mathf.Clamp(network.inputVars.movement.y, -1, 1)
+        );
 
         UpdateWheelMesh();
 
-        if (reset)
-        {
+        if (reset) {
             Reset();
             reset = false;
         }
     }
 
-    void Reset()
-    {
+    void Reset() {
         transform.position = initialPosition;
         transform.rotation = initialRotation;
     }
 
-    private void SetPower(float left, float right)
-    {
+    private void SetPower(float left, float right) {
         frontRightWheel.motorTorque = right * network.maxMotorTorque;
         middleRightWheel.motorTorque = right * network.maxMotorTorque;
         backRightWheel.motorTorque = right * network.maxMotorTorque;
@@ -73,16 +70,13 @@ public class RobotResolver : MonoBehaviour
         backLeftWheel.motorTorque = left * network.maxMotorTorque;
     }
 
-    public Vector3 GetRPM()
-    {
+    public Vector3 GetRPM() {
         return new Vector3(middleLeftWheel.rpm, middleRightWheel.rpm);
     }
 
 
-    private void UpdateWheelMesh()
-    {
-        for (int i = 0; i < 6; i++)
-        {
+    private void UpdateWheelMesh() {
+        for (int i = 0; i < 6; i++) {
             WheelCollider collider = colliders[i];
             Transform visualWheel = collider.transform.GetChild(0);
 
