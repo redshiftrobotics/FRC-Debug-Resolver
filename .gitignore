@@ -4,3 +4,38 @@ Simulator/Temp/
 __pycache__/
 .DS_STORE
 .vscode/*
+
+# =============== #
+# Unity generated #
+# =============== #
+Simulator/Temp/
+Simulator/obj/
+Simulator/UnityGenerated/
+Simulator/Library/
+Simulator/Assets/AssetStoreTools*
+
+# ===================================== #
+# Visual Studio / MonoDevelop generated #
+# ===================================== #
+Simulator/ExportedObj/
+Simulator/*.svd
+Simulator/*.userprefs
+Simulator/*.csproj
+Simulator/*.pidb
+Simulator/*.suo
+Simulator/*.sln
+Simulator/*.user
+Simulator/*.unityproj
+Simulator/*.booproj
+
+# ============ #
+# OS generated #
+# ============ #
+Simulator/.DS_Store
+Simulator/.DS_Store?
+Simulator/._*
+Simulator/.Spotlight-V100
+Simulator/.Trashes
+Simulator/Icon?
+Simulator/ehthumbs.db
+Simulator/Thumbs.db
