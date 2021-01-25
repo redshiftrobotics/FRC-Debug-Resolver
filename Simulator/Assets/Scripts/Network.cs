@@ -1,39 +1,61 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
 using UnityEngine;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text;
+using Leguar.TotalJSON;
+
+enum State {
+    NONE = 0,
+    AUTO_INITIALIZE = 1,
+    AUTO_LOOP = 2,
+    TELEOP_INITIALIZE = 3,
+    TELEOP_LOOP = 4
+};
 
 // Networked output variables
 [Serializable]
-public class OutputNetworkVars
-{
-    public Vector2 outputWorldPosition;
-    public float outputWorldRotation;
-    public Vector2 outputEncoderCount;
+public class NetworkVariables {
+
+    // World stuff (cheating if you use this)
+    public Vector2 world_position;
+    public float world_rotation;
+
+    // State of the robot, init, teleop, auto, etc
+    public int state;
+    public bool powered;
+
+    // Encoders
+    public int encoder0;
+    public int encoder1;
+
+    // Motors
+    public float motor0;
+    public float motor1;
 }
 
-// Networked input variables
 [Serializable]
-public class InputNetworkVars
-{
-    public Vector3 movement;
-    public Vector3 rotation;
-}
+public class OutputMessage {
+    public string header;
+    public dynamic value;
 
+    public OutputMessage(string _header, dynamic _value) {
+        header = _header;
+        value = _value;
+    }
+}
 
 // Network MonoBehaviour
-public class Network : MonoBehaviour
-{
+public class Network : MonoBehaviour {
     [Header("Settings")]
     public float maxMotorTorque = 100;
 
     [Header("Networked Variables")]
-    public OutputNetworkVars outputVars;
-    public InputNetworkVars inputVars;
+    public NetworkVariables netVars;
 
     // Reference to the client
     private TcpClient connectedTcpClient;
@@ -43,11 +65,14 @@ public class Network : MonoBehaviour
 
     // Instance this shit because its not static
     private RobotResolver robotResolver;
+    private CameraController cameraController;
+    private Log[] logs;
 
-    void Start()
-    {
+    void Start() {
         // Grab local variables
         robotResolver = GetComponent<RobotResolver>();
+        cameraController = FindObjectOfType<CameraController>();
+        logs = FindObjectsOfType<Log>();
 
         // Initialize server
         tcpListenerThread = new Thread(new ThreadStart(ListenForRequests));
@@ -55,33 +80,29 @@ public class Network : MonoBehaviour
         tcpListenerThread.Start();
 
         // Start coroutine for sending output messages
-        StartCoroutine(SendOutput());
+        // StartCoroutine(SendOutput());
     }
 
-    void Update()
-    {
+    void Update() {
         // Temporary. The input will be set from the python socket
         // inputVars.movement.x = Input.GetAxis("Horizontal");
         // inputVars.movement.y = Input.GetAxis("Vertical");
 
         // Capture 2D position
-        outputVars.outputWorldPosition.x = robotResolver.transform.position.x;
-        outputVars.outputWorldPosition.y = robotResolver.transform.position.z;
+        netVars.world_position.x = robotResolver.transform.position.x;
+        netVars.world_position.y = robotResolver.transform.position.z;
 
         // Capture yaw rotation
-        outputVars.outputWorldRotation = robotResolver.transform.eulerAngles.y;
+        netVars.world_rotation = robotResolver.transform.eulerAngles.y;
 
         // Capture left and right encoder values
-        outputVars.outputEncoderCount.x += (int)(robotResolver.GetRPM().x * Time.deltaTime * 60);
-        outputVars.outputEncoderCount.y += (int)(robotResolver.GetRPM().y * Time.deltaTime * 60);
-
-        //SendMessage(outputVars);
+        netVars.encoder0 += (int)(robotResolver.GetRPM().x * Time.deltaTime * 60);
+        netVars.encoder1 += (int)(robotResolver.GetRPM().y * Time.deltaTime * 60);
     }
 
     // Runs in another thread and starts listening for requests to the server
-    private void ListenForRequests()
-    {
-        Debug.Log("Started Listener thread");
+    private void ListenForRequests() {
+        AddLog("Started Listener thread", LogType.MESSAGE);
 
 
         // Create listener on localhost port 8052. 			
@@ -89,19 +110,17 @@ public class Network : MonoBehaviour
         tcpListener.Start();
 
 
-        while (true)
-        {
-            Debug.Log("Waiting for connection on port 8052");
+        while (true) {
+            AddLog("Waiting for connection on port 8052", LogType.WARNING);
             // Accept the client
             connectedTcpClient = tcpListener.AcceptTcpClient();
 
-            if (!connectedTcpClient.Connected)
-            {
+            if (!connectedTcpClient.Connected) {
                 OnDisconnect();
                 continue;
             }
 
-            Debug.Log("Connected");
+            AddLog("Connected", LogType.MESSAGE);
 
             // Fetch the stream
             NetworkStream stream = connectedTcpClient.GetStream();
@@ -110,15 +129,12 @@ public class Network : MonoBehaviour
             Byte[] readBytes = new Byte[1024];
 
             // Listens while connected
-            while (connectedTcpClient.Connected)
-            {
+            while (connectedTcpClient != null && connectedTcpClient.Connected) {
                 int length;
                 // Read incoming stream into byte array. 
 
-                try
-                {
-                    while ((length = stream.Read(readBytes, 0, readBytes.Length)) != 0)
-                    {
+                try {
+                    while ((length = stream.Read(readBytes, 0, readBytes.Length)) != 0) {
                         byte[] incomingData = new byte[length];
 
                         // Copies the buffer into our (correctly sized) array
@@ -127,37 +143,30 @@ public class Network : MonoBehaviour
                         // ReceivedMessage callback
                         OnReceivedMessage(incomingData);
                     }
-                }
-                catch (Exception e)
-                {
-                    OnDisconnect();
-                    // Debug.Log(e.ToString());
+                } catch (Exception e) {
+                    // OnDisconnect();
+                    AddLog(e.Message, LogType.ERROR);
                     continue;
                 }
             }
         }
     }
 
-    IEnumerator SendOutput()
-    {
-        while (true)
-        {
-            SendMessage(outputVars);
-            yield return new WaitForSeconds(0.01f);
-        }
-    }
+    private void SendMessage(object message) {
 
-    private void SendMessage(object message)
-    {
+        string strMessage = JSON.Serialize(message).CreateString();
+        List<byte> bytes = new List<byte>(Encoding.ASCII.GetBytes(strMessage));
 
-        string strMessage = JsonUtility.ToJson(message);
-        byte[] bytes = Encoding.ASCII.GetBytes(strMessage);
+        // Add terminator
+        bytes.Add(0x00);
+
+        byte[] byteArr = bytes.ToArray();
+
 
         if (connectedTcpClient == null || !connectedTcpClient.Connected)
             return;
 
-        try
-        {
+        try {
             // Get a stream object for writing. 			
             NetworkStream stream = connectedTcpClient.GetStream();
 
@@ -165,34 +174,168 @@ public class Network : MonoBehaviour
                 return;
 
             // Write byte array to socketConnection stream.               
-            stream.Write(bytes, 0, bytes.Length);
+            stream.Write(byteArr, 0, byteArr.Length);
 
-        }
-        catch (SocketException socketException)
-        {
+        } catch (SocketException socketException) {
             Debug.Log("Socket exception: " + socketException);
         }
     }
 
-    private void OnDisconnect()
-    {
-        Debug.Log("Disconnected");
+    private void OnDisconnect() {
+        connectedTcpClient.GetStream().Close();
+        connectedTcpClient.Close();
+        connectedTcpClient = null;
 
-        inputVars.movement = new Vector3(0, 0);
-        inputVars.rotation = new Vector3(0, 0);
+        AddLog("Disconnected", LogType.MESSAGE);
+
+        netVars.motor0 = 0;
+        netVars.motor1 = 0;
+        netVars.world_rotation = 0;
+
         robotResolver.reset = true;
     }
 
-    private void OnReceivedMessage(byte[] bytes)
-    {
+    private void OnAddOverlayPoint(JSON overlayStruct) {
+
+        OverlayPoint point = JsonUtility.FromJson<OverlayPoint>(overlayStruct.CreateString());
+        point.color.a = 1;
+
+        // Transpose top down
+        float z = point.center.z;
+        point.center.z = point.center.y;
+        point.center.y = z;
+
+        // Send responce
+        SendMessage(new OutputMessage("added_overlay_point", point.center));
+
+        // Draw the point
+        cameraController.AddOverlayPoint(point);
+    }
+
+    private void OnAddOverlayLine(JSON overlayStruct) {
+
+        OverlayLine line = JsonUtility.FromJson<OverlayLine>(overlayStruct.CreateString());
+        line.color.a = 1;
+
+        // Transpose top down
+        float z = line.start.z;
+        line.start.z = line.start.y;
+        line.start.y = z;
+
+        z = line.end.z;
+        line.end.z = line.end.y;
+        line.end.y = z;
+
+        // Send responce
+        SendMessage(new OutputMessage("added_overlay_line", line.start));
+
+        // Draw the point
+        cameraController.AddOverlayLine(line);
+    }
+
+    private void OnReceivedMessage(byte[] bytes) {
         // Convert byte array to string message. 							
         string stringMessage = Encoding.ASCII.GetString(bytes);
+        JSON message = JSON.ParseString(stringMessage);
 
-        if (stringMessage.Contains("}{"))
+        string header = message.GetString("header");
+
+        switch (header) {
+            case "request":
+                RequestVariable(message.GetString("variable"));
+                break;
+
+            case "set_variable":
+                SetVariable(message.GetString("variable"), message.GetJNumber("value").AsFloat());
+                break;
+
+            case "add_overlay_point":
+                OnAddOverlayPoint(message.GetJSON("value"));
+                break;
+
+            case "add_overlay_line":
+                OnAddOverlayLine(message.GetJSON("value"));
+                break;
+
+            case "disconnect":
+                OnDisconnect();
+                break;
+
+            default:
+                break;
+        }
+
+    }
+
+    // This is shit. Never use this. If you do I will find your address
+    public System.Reflection.FieldInfo GetVariable(string name) {
+        System.Reflection.FieldInfo variable;
+        try {
+            variable = netVars.GetType().GetField(name);
+            return variable;
+        } catch (System.NullReferenceException) {
+            return null;
+        }
+    }
+
+    // This is not so shit
+    private void RequestVariable(string name) {
+        dynamic variable = netVars.GetType().GetField(name).GetValue(netVars);
+
+        OutputMessage message = new OutputMessage(name, variable);
+
+        if (variable != null)
+            SendMessage(message);
+    }
+
+    // This not shit
+    private void SetVariable(string name, dynamic value) {
+
+        // What type the variable should be
+        dynamic lastVar = netVars.GetType().GetField(name).GetValue(netVars);
+        Type type = lastVar.GetType();
+
+        // Change it to the correct type
+        dynamic typedValue = Convert.ChangeType(value, type);
+
+        // Set it
+        netVars.GetType().GetField(name).SetValue(netVars, typedValue);
+
+        OutputMessage message = new OutputMessage("set", netVars.GetType().GetField(name).GetValue(netVars));
+
+        // Return what it was set to
+        SendMessage(message);
+    }
+
+    public void SetState(int _state) {
+        State toChange = (State)_state;
+
+        if (toChange == State.AUTO_LOOP && (State)netVars.state != State.AUTO_INITIALIZE) {
+            AddLog("Initialize first", LogType.ERROR);
             return;
+        }
 
-        InputNetworkVars message = JsonUtility.FromJson<InputNetworkVars>(stringMessage);
+        if (toChange == State.TELEOP_LOOP && (State)netVars.state != State.TELEOP_INITIALIZE) {
+            AddLog("Initialize first", LogType.ERROR);
+            return;
+        }
 
-        inputVars = message;
+        netVars.state = _state;
+
+        State enumState = (State)netVars.state;
+        AddLog("Set state to " + enumState.ToString(), LogType.MESSAGE);
+    }
+
+    public void TogglePower() {
+        netVars.powered = !netVars.powered;
+
+        AddLog("Powered " + (netVars.powered ? "ON" : "OFF"), LogType.WARNING);
+    }
+
+    public void AddLog(string message, LogType type) {
+        for (int i = 0; i < logs.Length; i++) {
+            logs[i].Add(message, type);
+        }
     }
 }
+

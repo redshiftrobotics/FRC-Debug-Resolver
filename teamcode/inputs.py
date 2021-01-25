@@ -4,7 +4,7 @@ import pygame
 
 from calculator import Calculator
 
-pygame.init()
+# pygame.init()
 
 
 class KeyboardInput:
@@ -24,9 +24,6 @@ class KeyboardInput:
         self.delta_time = new_time - self.last_time
         self.last_time = new_time
 
-        events = pygame.event.get()
-
-
         keys = pygame.key.get_pressed()
 
         horizontal = keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]
@@ -43,4 +40,4 @@ class KeyboardInput:
 
 
 global INPUTS
-INPUTS = KeyboardInput(5)
+INPUTS = KeyboardInput(2)

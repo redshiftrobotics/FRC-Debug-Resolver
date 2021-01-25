@@ -7,6 +7,7 @@ using UnityEngine;
 public class DashboardData : MonoBehaviour
 {
     public string title;
+    public string data;
 
     private Text titleElement;
     private Text dataElement;
@@ -16,9 +17,9 @@ public class DashboardData : MonoBehaviour
         dataElement = transform.GetChild(1).GetComponent<Text>();
     }
     
-
-    void Update() {
+    void FixedUpdate() {
         titleElement.text = title;
+        dataElement.text = data;
     }
 
     public void Set(string _title, string _data) {
@@ -27,7 +28,7 @@ public class DashboardData : MonoBehaviour
     }
 
     public void Set(string _data) {
-        dataElement.text = _data;
+        data = _data;
     }
 
     public void Set(Vector3 _data) {

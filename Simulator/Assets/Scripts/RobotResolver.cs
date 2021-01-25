@@ -16,6 +16,8 @@ public class RobotResolver : MonoBehaviour {
     public WheelCollider middleLeftWheel;
     public WheelCollider backLeftWheel;
 
+    public Light powerLight;
+
     private WheelCollider[] colliders;
 
     public bool reset = false;
@@ -39,13 +41,6 @@ public class RobotResolver : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        //Translate(network.inputMovement);
-        //Rotate(network.inputRotation);
-
-        SetPower(
-            Mathf.Clamp(network.inputVars.movement.x, -1, 1),
-            Mathf.Clamp(network.inputVars.movement.y, -1, 1)
-        );
 
         UpdateWheelMesh();
 
@@ -53,11 +48,34 @@ public class RobotResolver : MonoBehaviour {
             Reset();
             reset = false;
         }
+
+        powerLight.enabled = network.netVars.powered;
+
+        // If we aren't in an opmode or powered, stop everything
+        if (!network.netVars.powered
+            || network.netVars.state == 0
+            || network.netVars.state == 1
+            || network.netVars.state == 3) {
+
+            SetPower(0, 0);
+            return;
+        }
+        //Translate(network.inputMovement);
+        //Rotate(network.inputRotation);
+
+        SetPower(
+            Mathf.Clamp(network.netVars.motor0, -1, 1),
+            Mathf.Clamp(network.netVars.motor1, -1, 1)
+        );
+
+
     }
 
-    void Reset() {
-        transform.position = initialPosition;
-        transform.rotation = initialRotation;
+    public void Reset() {
+        transform.position = new Vector3(Random.Range(1, 9), 0, Random.Range(1, 9));
+        transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
+
+        network.SetState(0);
     }
 
     private void SetPower(float left, float right) {
