@@ -1,9 +1,14 @@
 Releases/
 Simulator/Library/
 Simulator/Temp/
-__pycache__/
+Simulator/.DS_STORE
+Simulator/.vscode/*
+
 .DS_STORE
-.vscode/*
+
+teamcode/__pycache__/
+teamcode/.DS_STORE
+teamcode/.vscode/*
 
 # =============== #
 # Unity generated #

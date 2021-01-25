@@ -1,7 +1,0 @@
-{
-    "python.pythonPath": "/Users/julianallchin/opt/anaconda3/envs/frc/bin/python",
-    "python.linting.pylintArgs": [
-        "--extension-pkg-whitelist=lxml",  // The extension is "lxml" not "1xml"
-        "--extension-pkg-whitelist=pygame"
-    ]
-}
