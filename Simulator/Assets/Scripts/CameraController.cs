@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering.PostProcessing;
 using UnityEngine;
 
 [Serializable]
@@ -248,4 +249,8 @@ public class CameraController : MonoBehaviour {
         if (overlayPoints.Contains(point))
             overlayPoints.Remove(point);
     }
+
+    public void ToggleRealism() {
+        GetComponent<PostProcessVolume>().weight = (!(GetComponent<PostProcessVolume>().weight != 0)) ? 1 : 0;
+	}
 }

@@ -8,11 +8,11 @@ public class WheelPlacer : MonoBehaviour
     public List<WheelCollider> wheels = new List<WheelCollider>();
 
 
-    [Range(0, 1)]
+    [Range(0, 0.5f)]
     public float offsetX;
-    [Range(0, 1)]
+    [Range(-0.5f, 0.5f)]
     public float offsetY;
-    [Range(0, 1)]
+    [Range(0, 0.5f)]
     public float offsetZ;
 
     // Start is called before the first frame update

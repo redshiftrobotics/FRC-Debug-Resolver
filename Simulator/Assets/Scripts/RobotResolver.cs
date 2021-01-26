@@ -50,6 +50,12 @@ public class RobotResolver : MonoBehaviour {
         }
 
         powerLight.enabled = network.netVars.powered;
+        Material mat = powerLight.GetComponent<MeshRenderer>().material;
+        mat.EnableKeyword("_EMISSION");
+        //mat.SetColor("_EmissiveColor", new Color(255, 107, 0) *);
+        //mat.SetFloat("_EmissiveExposureWeight", );
+        mat.SetColor("_EmissionColor", new Vector4(255, 107, 0, 0) * (network.netVars.powered ? 0.5f : 0));
+
 
         // If we aren't in an opmode or powered, stop everything
         if (!network.netVars.powered
