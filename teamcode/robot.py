@@ -16,6 +16,8 @@ class Robot(resolver.NetworkedRobot):
         self.left_motor = resolver.Motor(0)
         self.right_motor = resolver.Motor(1)
 
+        self.driver_joystick = resolver.Joystick(0)
+
         self.movement = Vector2(0,0)
 
 
@@ -25,6 +27,10 @@ class Robot(resolver.NetworkedRobot):
 
     def autonomousPeriodic(self):
         """Called every 20ms in autonomous mode"""
+        motor_power = self.go_to_point(Vector2(5,5))
+
+        self.left_motor.set_power(motor_power.x * 0.5)
+        self.right_motor.set_power(motor_power.y * 0.5)
 
 
     def teleopInit(self):
@@ -34,12 +40,11 @@ class Robot(resolver.NetworkedRobot):
     def teleopPeriodic(self):
         """Called every frame"""
 
-        self.go_to_point(Vector2(5,5))
+        # self.go_to_point(Vector2(5,5))
 
         # Drives straight forward
-        self.left_motor.set_power(self.movement.x)
-        self.right_motor.set_power(self.movement.y)
-
+        self.left_motor.set_power(self.driver_joystick.get_stick(0).y * 0.5)
+        self.right_motor.set_power(self.driver_joystick.get_stick(1).y * 0.5)
 
     # Some math calculations
     def go_to_point(self, point:Vector2):
@@ -62,10 +67,12 @@ class Robot(resolver.NetworkedRobot):
 
         move = math.pow(1 - abs(relative_angle_to_target)/math.pi, 3)
 
-        self.movement = Vector2(move + relative_angle_to_target, move - relative_angle_to_target)
+        motor_powers = Vector2(move + relative_angle_to_target, move - relative_angle_to_target)
 
         if distance_to_target < 0.1:
-            self.movement = Vector2(0,0)
+            motor_powers = Vector2(0,0)
+
+        return motor_powers
 
 
 if __name__ == "__main__":

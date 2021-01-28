@@ -18,19 +18,19 @@ MonoBehaviour:
     value: 1
   intensity:
     overrideState: 1
-    value: 1.37
+    value: 8.02
   threshold:
     overrideState: 1
-    value: 1.25
+    value: 0.9
   softKnee:
     overrideState: 1
-    value: 1
+    value: 0
   clamp:
     overrideState: 1
     value: 65436.77
   diffusion:
     overrideState: 1
-    value: 8.14
+    value: 7.81
   anamorphicRatio:
     overrideState: 1
     value: 0
@@ -112,7 +112,7 @@ MonoBehaviour:
     value: -4
   saturation:
     overrideState: 1
-    value: -4
+    value: -31
   brightness:
     overrideState: 1
     value: 0
@@ -121,7 +121,7 @@ MonoBehaviour:
     value: -0.07
   contrast:
     overrideState: 1
-    value: -15
+    value: 19
   mixerRedOutRedIn:
     overrideState: 1
     value: 100
@@ -1379,13 +1379,13 @@ MonoBehaviour:
     value: 6
   maximumIterationCount:
     overrideState: 1
-    value: 16
+    value: 108
   resolution:
     overrideState: 1
-    value: 0
+    value: 2
   thickness:
     overrideState: 1
-    value: 8
+    value: 64
   maximumMarchDistance:
     overrideState: 1
     value: 100
@@ -1394,7 +1394,7 @@ MonoBehaviour:
     value: 0
   vignette:
     overrideState: 1
-    value: 0.51
+    value: 1
 --- !u!114 &-2861224314981851277
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -1416,10 +1416,10 @@ MonoBehaviour:
     value: 1
   intensity:
     overrideState: 1
-    value: 0.38
+    value: 0.24
   color:
     overrideState: 1
-    value: {r: 0, g: 0, b: 0, a: 1}
+    value: {r: 0.09558559, g: 0.09931341, b: 0.11320752, a: 1}
   ambientOnly:
     overrideState: 0
     value: 1
@@ -1486,13 +1486,13 @@ MonoBehaviour:
     value: 1
   intensity:
     overrideState: 1
-    value: 1
+    value: 0.303
   size:
     overrideState: 1
-    value: 1.35
+    value: 0.3
   lumContrib:
     overrideState: 1
-    value: 1
+    value: 0.5
 --- !u!114 &1061258780743008109
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -1515,7 +1515,7 @@ MonoBehaviour:
     defaultState: 1
   intensity:
     overrideState: 1
-    value: 0.236
+    value: 0.06
   fastMode:
     overrideState: 1
     value: 0
@@ -1574,7 +1574,7 @@ MonoBehaviour:
     value: 1
   shutterAngle:
     overrideState: 1
-    value: 360
+    value: 180
   sampleCount:
     overrideState: 1
-    value: 16
+    value: 10

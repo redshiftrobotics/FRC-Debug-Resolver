@@ -49,12 +49,17 @@ public class RobotResolver : MonoBehaviour {
             reset = false;
         }
 
-        powerLight.enabled = network.netVars.powered;
+        //powerLight.enabled = network.netVars.powered;
         Material mat = powerLight.GetComponent<MeshRenderer>().material;
         mat.EnableKeyword("_EMISSION");
         //mat.SetColor("_EmissiveColor", new Color(255, 107, 0) *);
         //mat.SetFloat("_EmissiveExposureWeight", );
-        mat.SetColor("_EmissionColor", new Vector4(255, 107, 0, 0) * (network.netVars.powered ? 0.5f : 0));
+        mat.SetColor("_EmissionColor", new Vector4(255, 107, 0, 0) * (network.netVars.powered ? 0.05f : 0));
+
+        if (network.netVars.manual_control) {
+            SetPower(Input.GetAxis("JoystickLeftY"), Input.GetAxis("JoystickRightY"));
+            return;
+        }
 
 
         // If we aren't in an opmode or powered, stop everything
@@ -113,4 +118,6 @@ public class RobotResolver : MonoBehaviour {
         }
 
     }
+
+
 }

@@ -15,6 +15,7 @@ class State(enum.Enum):
 
 
 def run(robot):
+    
     try:
         robot = robot()
     finally:

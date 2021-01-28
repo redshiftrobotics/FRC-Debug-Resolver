@@ -1,4 +1,5 @@
 from .network import Network
+from .calculator import Vector2
 
 global network
 network = Network(8052)
@@ -24,7 +25,7 @@ class Encoder:
 
     def get(self):
         """Returns encoder value"""
-        return network.request_variable(self.id).value
+        return network.request_variable(self.id)['value']
 
     def get_distance(self):
         """Returns distance using K"""
@@ -40,3 +41,13 @@ class Motor:
     def set_power(self, power: float):
         """Sets the motor's power"""
         network.update_variable(self.id, power)
+
+class Joystick:
+    def __init__(self, index):
+        """Initializes an motor object with network reference"""
+        self.index = index
+        self.id = get_id(self)
+
+    def get_stick(self, index):
+        variable = self.id + "_stick" + str(index)
+        return Vector2.fromDict(network.request_variable(variable)['value'])

@@ -33,12 +33,16 @@ public class OverlayPoint {
 
 public class CameraController : MonoBehaviour {
     int type = 0;
-    int maxViews = 3;
+    int maxViews = 4;
 
     private Camera cameraComponent;
     private RobotResolver robotResolver;
 
-    public Vector3 offsetPosition;
+    public Vector3 followOffset;
+    public Vector3 povOffset;
+
+    public float cameraSmoothing = 5f;
+    private bool realism;
 
     [Header("Drawing")]
     private Material overlayMaterial;
@@ -63,6 +67,9 @@ public class CameraController : MonoBehaviour {
             case 2:
                 Follow();
                 break;
+            case 3:
+                POV();
+                break;
             default:
                 TopDown();
                 break;
@@ -70,37 +77,47 @@ public class CameraController : MonoBehaviour {
     }
 
     void TopDown() {
-        Vector3 target = new Vector3(5, 5, 5);
+        Vector3 target = new Vector3(0, 5, 0);
 
         float distance = (target - transform.position).magnitude;
 
         cameraComponent.orthographic = true;
         if (distance > 0.01f) {
-            transform.position = Vector3.Lerp(transform.position, target, 0.1f);
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(new Vector3(90, 0, 0)), 0.1f);
+            transform.position = Vector3.Lerp(transform.position, target, cameraSmoothing/100);
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(new Vector3(90, 90, 0)), cameraSmoothing/100 * Time.fixedDeltaTime);
         } else {
             transform.position = target;
-            transform.eulerAngles = new Vector3(90, 0, 0);
+            transform.eulerAngles = new Vector3(90, 90, 0);
         }
     }
 
     void Follow() {
         cameraComponent.orthographic = false;
         Transform r = robotResolver.transform;
-        Vector3 target = r.position + r.forward * offsetPosition.z + r.right * offsetPosition.x + Vector3.up * offsetPosition.y;
-        transform.position = Vector3.Lerp(transform.position, target, 0.1f);
+        Vector3 target = r.position + r.forward * followOffset.z + r.right * followOffset.x + Vector3.up * followOffset.y;
+        transform.position = Vector3.Lerp(transform.position, target, cameraSmoothing * 2 * Time.fixedDeltaTime);
 
-        Quaternion targetRotation = Quaternion.LookRotation(r.position - transform.position);
+        Quaternion targetRotation = Quaternion.LookRotation(r.position + r.forward/2 - transform.position);
 
-        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 0.1f);
+        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, cameraSmoothing * Time.fixedDeltaTime);
     }
 
     void CenteredTopDown() {
-        Vector3 target = new Vector3(robotResolver.transform.position.x, 3, robotResolver.transform.position.z);
+        Vector3 target = new Vector3(robotResolver.transform.position.x, 5, robotResolver.transform.position.z);
 
         cameraComponent.orthographic = false;
-        transform.position = Vector3.Lerp(transform.position, target, 0.1f);
-        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(new Vector3(90, 0, 0)), 0.1f);
+        transform.position = Vector3.Lerp(transform.position, target, cameraSmoothing * Time.fixedDeltaTime);
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(new Vector3(90, 0, 0)), cameraSmoothing * Time.fixedDeltaTime);
+    }
+
+    void POV() {
+        cameraComponent.orthographic = false;
+        Transform r = robotResolver.transform;
+        Vector3 target = r.position + r.forward * povOffset.z + r.right * povOffset.x + Vector3.up * povOffset.y;
+
+        transform.position = target;
+        transform.rotation = r.rotation;
+
     }
 
     public void ChangeView() {
@@ -108,6 +125,9 @@ public class CameraController : MonoBehaviour {
     }
 
     void OnPostRender() {
+        if (realism)
+            return;
+
         if (!overlayMaterial) {
             // Unity has a built-in shader that is useful for drawing
             // simple colored things. In this case, we just want to use
@@ -252,5 +272,6 @@ public class CameraController : MonoBehaviour {
 
     public void ToggleRealism() {
         GetComponent<PostProcessVolume>().weight = (!(GetComponent<PostProcessVolume>().weight != 0)) ? 1 : 0;
+        realism = !realism;
 	}
 }

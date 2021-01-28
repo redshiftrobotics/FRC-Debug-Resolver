@@ -14,6 +14,8 @@ public class Dashboard : MonoBehaviour {
 
     public List<GameObject> panels = new List<GameObject>();
 
+    public GameObject simulatorModal;
+
     void Start() {
         canvas = transform.parent.GetComponent<Canvas>();
 
@@ -39,6 +41,8 @@ public class Dashboard : MonoBehaviour {
 
         if (dashPanel <= panels.Count)
             panels[dashPanel].SetActive(true);
+
+        simulatorModal.SetActive(network.netVars.manual_control);
     }
 
     void GetVariableFromNetwork(DashboardData link) {
