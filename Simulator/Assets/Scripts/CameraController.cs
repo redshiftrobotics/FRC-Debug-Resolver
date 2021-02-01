@@ -84,10 +84,10 @@ public class CameraController : MonoBehaviour {
         cameraComponent.orthographic = true;
         if (distance > 0.01f) {
             transform.position = Vector3.Lerp(transform.position, target, cameraSmoothing/100);
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(new Vector3(90, 90, 0)), cameraSmoothing/100 * Time.fixedDeltaTime);
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(new Vector3(90, 0, 0)), cameraSmoothing/100 * Time.fixedDeltaTime);
         } else {
             transform.position = target;
-            transform.eulerAngles = new Vector3(90, 90, 0);
+            transform.eulerAngles = new Vector3(90, 0, 0);
         }
     }
 

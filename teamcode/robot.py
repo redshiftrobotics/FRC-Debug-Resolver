@@ -21,16 +21,19 @@ class Robot(resolver.NetworkedRobot):
         self.movement = Vector2(0,0)
 
 
+
     def autonomousInit(self):
         """Called only at the beginning of autonomous mode"""
+        self.start_position = network.request_variable("world_position")['value']
+        self.start_rotation = network.request_variable("world_rotation")['value']
 
 
     def autonomousPeriodic(self):
         """Called every 20ms in autonomous mode"""
-        motor_power = self.go_to_point(Vector2(5,5))
+        motor_power = self.go_to_point(Vector2(0,10))
 
-        self.left_motor.set_power(motor_power.x * 0.5)
-        self.right_motor.set_power(motor_power.y * 0.5)
+        self.left_motor.set_power(motor_power.x)
+        self.right_motor.set_power(motor_power.y)
 
 
     def teleopInit(self):
@@ -43,8 +46,8 @@ class Robot(resolver.NetworkedRobot):
         # self.go_to_point(Vector2(5,5))
 
         # Drives straight forward
-        self.left_motor.set_power(self.driver_joystick.get_stick(0).y * 0.5)
-        self.right_motor.set_power(self.driver_joystick.get_stick(1).y * 0.5)
+        self.left_motor.set_power(self.driver_joystick.get_stick(0).y * 1)
+        self.right_motor.set_power(self.driver_joystick.get_stick(0).y * 1)
 
     # Some math calculations
     def go_to_point(self, point:Vector2):
@@ -65,12 +68,12 @@ class Robot(resolver.NetworkedRobot):
         abs_angle_to_target = math.atan2(position_delta.x, position_delta.y)
         relative_angle_to_target = Calculator.angle_wrap(abs_angle_to_target - (world_rotation))
 
-        move = math.pow(1 - abs(relative_angle_to_target)/math.pi, 3)
+        move = Calculator.clip(math.pow(1 - abs(relative_angle_to_target)/math.pi, 3) * distance_to_target/2, -1.0, 1.0)
 
         motor_powers = Vector2(move + relative_angle_to_target, move - relative_angle_to_target)
 
-        if distance_to_target < 0.1:
-            motor_powers = Vector2(0,0)
+        # if distance_to_target < 0.001:
+        #     motor_powers = Vector2(0,0)
 
         return motor_powers
 

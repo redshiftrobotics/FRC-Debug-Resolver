@@ -168,7 +168,7 @@ class Calculator:
     @staticmethod
     def clip(value, minimum, maximum):
         """Because python doesn't have this..."""
-        return max(maximum, min(minimum, value))
+        return max(minimum, min(value, maximum))
 
     @staticmethod
     def lerp(a, b, t):

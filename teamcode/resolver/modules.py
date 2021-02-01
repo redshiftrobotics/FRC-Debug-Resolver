@@ -1,5 +1,5 @@
+from .calculator import Calculator, Vector2
 from .network import Network
-from .calculator import Vector2
 
 global network
 network = Network(8052)

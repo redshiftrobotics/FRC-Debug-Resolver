@@ -1,12 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Events;
-using UnityEngine;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text;
+
+using UnityEngine.Events;
+using UnityEngine.InputSystem;
+using UnityEngine;
+
 using Leguar.TotalJSON;
 
 enum State {
@@ -58,6 +61,7 @@ public class OutputMessage {
 public class Network : MonoBehaviour {
 	[Header("Settings")]
 	public float maxMotorTorque = 100;
+	public float maxSpeed = 3.743381f;
 
 	[Header("Networked Variables")]
 	public NetworkVariables netVars;
@@ -89,6 +93,7 @@ public class Network : MonoBehaviour {
 	}
 
 	void Update() {
+		
 		// Temporary. The input will be set from the python socket
 		// inputVars.movement.x = Input.GetAxis("Horizontal");
 		// inputVars.movement.y = Input.GetAxis("Vertical");
@@ -104,8 +109,10 @@ public class Network : MonoBehaviour {
 		netVars.encoder0 += (int)(robotResolver.GetRPM().x * Time.deltaTime * 60);
 		netVars.encoder1 += (int)(robotResolver.GetRPM().y * Time.deltaTime * 60);
 
-		netVars.joystick0_stick0 = new Vector2(Input.GetAxis("JoystickLeftX"), Input.GetAxis("JoystickLeftY"));
-		netVars.joystick0_stick1 = new Vector2(Input.GetAxis("JoystickRightX"), Input.GetAxis("JoystickRightY"));
+		netVars.joystick0_stick0 = Gamepad.current.leftStick.ReadValue();
+		netVars.joystick0_stick1 = Gamepad.current.rightStick.ReadValue();
+
+
 	}
 
 	// Runs in another thread and starts listening for requests to the server

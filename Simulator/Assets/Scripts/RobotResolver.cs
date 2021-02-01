@@ -16,6 +16,9 @@ public class RobotResolver : MonoBehaviour {
     public WheelCollider middleLeftWheel;
     public WheelCollider backLeftWheel;
 
+    private Vector3 rightPreviousPosition;
+    private Vector3 leftPreviousPosition;
+
     public Light powerLight;
 
     private WheelCollider[] colliders;
@@ -42,6 +45,8 @@ public class RobotResolver : MonoBehaviour {
     // Update is called once per frame
     void Update() {
 
+        rb.centerOfMass = new Vector3(0,-0.05f,0);
+
         UpdateWheelMesh();
 
         if (reset) {
@@ -57,7 +62,7 @@ public class RobotResolver : MonoBehaviour {
         mat.SetColor("_EmissionColor", new Vector4(255, 107, 0, 0) * (network.netVars.powered ? 0.05f : 0));
 
         if (network.netVars.manual_control) {
-            SetPower(Input.GetAxis("JoystickLeftY"), Input.GetAxis("JoystickRightY"));
+            SetPower(network.netVars.joystick0_stick0.y, network.netVars.joystick0_stick0.y);
             return;
         }
 
@@ -83,20 +88,49 @@ public class RobotResolver : MonoBehaviour {
     }
 
     public void Reset() {
-        transform.position = new Vector3(Random.Range(1, 9), 0, Random.Range(1, 9));
-        transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
+        transform.position = new Vector3(0,0.1f,0);
+        transform.eulerAngles = Vector3.zero;
+        rb.velocity = Vector3.zero;
+
+        network.netVars.encoder0 = 0;
+        network.netVars.encoder1 = 0;
 
         network.SetState(0);
     }
 
     private void SetPower(float left, float right) {
-        frontRightWheel.motorTorque = right * network.maxMotorTorque;
-        middleRightWheel.motorTorque = right * network.maxMotorTorque;
-        backRightWheel.motorTorque = right * network.maxMotorTorque;
+        if (Mathf.Abs(right) < 0.01f)
+            right = 0;
 
-        frontLeftWheel.motorTorque = left * network.maxMotorTorque;
-        middleLeftWheel.motorTorque = left * network.maxMotorTorque;
-        backLeftWheel.motorTorque = left * network.maxMotorTorque;
+        if (Mathf.Abs(left) < 0.01f)
+            left = 0;
+
+
+        Vector3 rightSpeed = (middleRightWheel.transform.position - rightPreviousPosition) / Time.deltaTime;
+        rightPreviousPosition = middleRightWheel.transform.position;
+
+        Vector3 leftSpeed = (middleLeftWheel.transform.position - leftPreviousPosition) / Time.deltaTime;
+        leftPreviousPosition = middleLeftWheel.transform.position;
+
+
+
+        // Parent right
+        if (rightSpeed.magnitude <= network.maxSpeed)
+            middleRightWheel.motorTorque += right * network.maxMotorTorque * Time.deltaTime;
+
+        // Parent left
+        if (rightSpeed.magnitude <= network.maxSpeed)
+            middleLeftWheel.motorTorque += left * network.maxMotorTorque * Time.deltaTime;
+        
+        
+        frontRightWheel.motorTorque = middleRightWheel.motorTorque;
+        backRightWheel.motorTorque = middleRightWheel.motorTorque;
+
+        frontLeftWheel.motorTorque = middleLeftWheel.motorTorque;
+        backLeftWheel.motorTorque = middleLeftWheel.motorTorque;
+
+        // rb.AddForceAtPosition(middleRightWheel.transform.forward * right * network.maxMotorTorque, middleRightWheel.transform.position);
+        // rb.AddForceAtPosition(middleLeftWheel.transform.forward * right * network.maxMotorTorque, middleLeftWheel.transform.position);
     }
 
     public Vector3 GetRPM() {
