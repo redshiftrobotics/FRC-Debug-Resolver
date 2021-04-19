@@ -109,8 +109,13 @@ public class Network : MonoBehaviour {
 		netVars.encoder0 += (int)(robotResolver.GetRPM().x * Time.deltaTime * 60);
 		netVars.encoder1 += (int)(robotResolver.GetRPM().y * Time.deltaTime * 60);
 
-		netVars.joystick0_stick0 = Gamepad.current.leftStick.ReadValue();
-		netVars.joystick0_stick1 = Gamepad.current.rightStick.ReadValue();
+		if (Gamepad.current != null) {
+			netVars.joystick0_stick0 = Gamepad.current.leftStick.ReadValue();
+			netVars.joystick0_stick1 = Gamepad.current.rightStick.ReadValue();
+		} else {
+			netVars.joystick0_stick0 = Vector2.zero;
+			netVars.joystick0_stick1 = Vector2.zero;
+		}
 
 
 	}
